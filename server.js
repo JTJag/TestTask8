@@ -1,8 +1,13 @@
+require("dotenv").config({ path: "dev.env" });
 const express = require("express");
+const multer = require("multer");
 const routes = require("./routes");
 const error404 = require("./middlewares/404");
 
 const app = express();
+const storage = multer.memoryStorage();
+
+app.use(multer({ storage }).any());
 
 app.use(express.static(__dirname + "/public"));
 
