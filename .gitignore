@@ -1,0 +1,9 @@
+# === Rules for `node_modules` ===
+node_modules
+mongorestore
+videos
+dump
+assets/img/graphs
+dump
+sitemap.xml
+.idea/workspace.xml
