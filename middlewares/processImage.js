@@ -1,55 +1,6 @@
 const sharp = require("sharp");
 const fs = require("fs");
-
-const NotDefinedError = {
-  status: "error",
-  errors: [
-    {
-      error: "IMAGE_NOT_DEFINED",
-      msg: "Изображение не загружено.",
-    },
-  ],
-};
-
-const MultipleImageError = {
-  status: "error",
-  errors: [
-    {
-      error: "MULTIPLE_IMAGE_NOT_SUPPORTED",
-      msg: "Загрузка нескольких изображений не поддерживается",
-    },
-  ],
-};
-
-const FileFormatError = {
-  status: "error",
-  errors: [
-    {
-      error: "FILE_FORMAT_ERROR",
-      msg: "Загруженный файл не является изображением",
-    },
-  ],
-};
-
-const UnsupportedImageFormatError = {
-  status: "error",
-  errors: [
-    {
-      error: "UNSUPPORTED_IMAGE_FORMAT",
-      msg: "Неподдерживаемый формат изображения",
-    },
-  ],
-};
-
-const InternalServerError = {
-  status: "error",
-  errors: [
-    {
-      error: "INTERNAL_ERROR",
-      msg: "Внутренняя ошибка сервера",
-    },
-  ],
-};
+const errors = require("../utils/errors");
 
 function makeId() {
   var text = "";
@@ -105,35 +56,47 @@ const processImage = async (res, image) => {
         ],
       },
     });
-  } catch (e) {}
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json(errors.ImageProcessError);
+  }
 };
 
-module.exports = (req, res, next) => {
-  //Если файл не передан
-  if (!req.files) return res.status(400).json(NotDefinedError);
+module.exports = (err, req, res, next) => {
+  if (err) {
+    console.error(err);
+    return res.status(500).json(errors.InternalServerError);
+  }
+  try {
+    //Если файл не передан
+    if (!req.files) return res.status(400).json(errors.ImageNotDefinedError);
 
-  //Выбираем изображения из поля "image"
-  const images = req.files.filter((e) => e.fieldname == "image");
-  switch (images.length) {
-    case 0: //Если нужного поля нет
-      return res.status(400).json(NotDefinedError);
-      break;
+    //Выбираем изображения из поля "image"
+    const images = req.files.filter((e) => e.fieldname == "image");
+    switch (images.length) {
+      case 0: //Если нужного поля нет
+        return res.status(400).json(errors.ImageNotDefinedError);
+        break;
 
-    case 1: // Если передано одно изображение
-      const image = images[0];
-      //Проверяем тип файла по mime
-      if (!/image\/*/.test(image.mimetype)) {
-        return res.status(400).json(FileFormatError);
-      }
-      if (!/image\/(jpeg|jpg|png)/.test(image.mimetype)) {
-        return res.status(400).json(UnsupportedImageFormatError);
-      }
-      return processImage(res, image);
-      break;
+      case 1: // Если передано одно изображение
+        const image = images[0];
+        //Проверяем тип файла по mime
+        if (!/image\/*/.test(image.mimetype)) {
+          return res.status(400).json(errors.FileFormatError);
+        }
+        if (!/image\/(jpeg|jpg|png)/.test(image.mimetype)) {
+          return res.status(400).json(errors.UnsupportedImageFormatError);
+        }
+        return processImage(res, image);
+        break;
 
-    default:
-      // Если передано больше одного изображения
-      return res.status(400).json(MultipleImageError);
-      break;
+      default:
+        // Если передано больше одного изображения
+        return res.status(400).json(errors.MultipleImageError);
+        break;
+    }
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json(errors.InternalServerError);
   }
 };
