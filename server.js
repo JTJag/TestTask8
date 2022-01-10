@@ -17,7 +17,7 @@ app.use(express.static(__dirname + "/public"));
 
 app.use("/", routes);
 
-app.use("/", error404);
+app.use("*", error404);
 
 app.listen(3000);
 

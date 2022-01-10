@@ -58,6 +58,30 @@ const ImageProcessError = {
   ],
 };
 
+const InvalidJSONError = {
+  status: "error",
+  errors: {
+    error: "INVALID_JSON",
+    msg: "Неверный формат входных данных",
+  },
+};
+
+const XLSXCreateError = {
+  status: "error",
+  errors: {
+    error: "XLSX_CREATE_ERROR",
+    msg: "Не удалось создать таблицу",
+  },
+};
+
+const WriteFileError = {
+  status: "error",
+  errors: {
+    error: "WRITE_FILE_ERROR",
+    msg: "Не удалось записать файл",
+  },
+};
+
 module.exports = {
   ImageNotDefinedError,
   MultipleImageError,
@@ -65,4 +89,7 @@ module.exports = {
   UnsupportedImageFormatError,
   InternalServerError,
   ImageProcessError,
+  InvalidJSONError,
+  XLSXCreateError,
+  WriteFileError,
 };

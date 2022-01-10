@@ -1,0 +1,226 @@
+openapi: 3.0.0
+servers:
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/jtjag/TestTask8/1.0.0
+info:
+  description: Описание конечных точек тестового задания
+  version: "1.0.0"
+  title: API для тестового задания
+  contact:
+    email: jtjag@mail.ru
+  license:
+    name: Apache 2.0
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+tags:
+  - name: Все
+    description: Все доступные конечные точки
+paths:
+  /generate_report:
+    post:
+      tags: [Все]
+      summary: Генерирует XLSX отчет
+      operationId: generateReport
+      description: |
+        Используется для составления отчета по шаблону из
+        данных переданных в JSON
+      requestBody:
+        description: Массив данных
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                description: Информация о записи
+                required:
+                  - data
+                  - organization
+                properties:
+                  data:
+                    type: array
+                    description: |
+                      Данные столбцов
+                    items:
+                      type: object
+                      required:
+                        - count
+                        - column_name
+                      properties:
+                        count:
+                          type: integer
+                          description: Данные в ячейке
+                        column_name:
+                          type: string
+                          description: Название столбца
+                  organization:
+                    type: object
+                    required:
+                      - id
+                      - short_name
+                    properties:
+                      id:
+                        type: integer
+                      short_name:
+                        type: string
+                        description: Название организации
+      responses:
+        "200":
+          description: Таблица успешно создана
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                  - data
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  data:
+                    type: object
+                    required: [report]
+                    properties:
+                      report:
+                        type: object
+                        required: [url, name]
+                        properties:
+                          url:
+                            type: string
+                            description: Ссылка на отчёт
+                          name:
+                            type: string
+                            description: Название файла отчёта
+        "400":
+          description: Неверные входные данные
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, errors]
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  errors:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Error"
+        "500":
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, errors]
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  errors:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Error"
+  /process_image:
+    post:
+      tags: [Все]
+      summary: Преобразует изображения
+      operationId: processImage
+      description: |
+        Используется для загрузки изображения на сервер и генерации на его 
+        основе изображений 1600x800 и 200x200
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Изображение обработано
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                  - data
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  data:
+                    type: object
+                    required: [report]
+                    properties:
+                      images:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/ImageData"
+        "400":
+          description: Неверные входные данные
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                  - errors
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  errors:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Error"
+        "500":
+          description: Ошибка сервера
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                  - errors
+                properties:
+                  status:
+                    $ref: "#/components/schemas/Status"
+                  errors:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    Status:
+      type: string
+      enum: ["success", "error"]
+      description: >
+        Статус операции
+         * `success` - Успешно
+         * `error` - С ошибками
+      example: "success"
+    Error:
+      type: object
+      required: [error, msg]
+      properties:
+        error:
+          type: string
+          description: Короткий идентификатор ошибки
+          example: "INTERNAL_ERROR"
+        msg:
+          type: string
+          description: Сообщение для клиента
+          example: Внутренняя ошибка сервера
+    ImageData:
+      type: object
+      required: [type, src]
+      properties:
+        type:
+          type: string
+          enum: [preview, ful]
+          description: >
+            * `preview` - Превью 200x200
+            * `full` - Полное 1600x900
+        src:
+          type: string
+          description: Ссылка на изображение

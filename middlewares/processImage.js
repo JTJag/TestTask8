@@ -11,8 +11,9 @@ function makeId() {
   return text;
 }
 
-const processImage = async (res, image) => {
+async function processImage(res, image) {
   try {
+    //TODO Сделать разбивку по 10000 файлов на каталог
     //Генерируем уникальный id
     let id = makeId();
     while (fs.existsSync(`${process.env.UPLOAD_FOLDER}/${id}`)) {
@@ -60,13 +61,9 @@ const processImage = async (res, image) => {
     console.error(e);
     return res.status(500).json(errors.ImageProcessError);
   }
-};
+}
 
-module.exports = (err, req, res, next) => {
-  if (err) {
-    console.error(err);
-    return res.status(500).json(errors.InternalServerError);
-  }
+module.exports = function (req, res) {
   try {
     //Если файл не передан
     if (!req.files) return res.status(400).json(errors.ImageNotDefinedError);
@@ -99,4 +96,5 @@ module.exports = (err, req, res, next) => {
     console.error(e);
     return res.status(500).json(errors.InternalServerError);
   }
+  next();
 };
